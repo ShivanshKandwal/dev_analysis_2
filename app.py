@@ -348,4 +348,5 @@ with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as d
             )
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7865)
+    port = int(os.environ.get("PORT", 7860))
+    demo.launch(server_name="0.0.0.0", server_port=port)
