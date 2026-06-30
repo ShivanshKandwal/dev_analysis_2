@@ -1,0 +1,56 @@
+# Environment
+venv/
+.env
+__pycache__/
+*.pyc
+*.pyo
+
+# Data
+data/raw/
+data/processed/
+data/features/
+
+# Model artifacts
+models/
+
+# MLflow
+mlruns/
+mlflow/
+
+# Monitoring reports
+monitoring/*.html
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+
+# Allow specific models/data files needed by the Gradio app
+!data/processed/master_table_v2.csv
+!data/processed/models/churn_xgb.pkl
+!data/processed/models/career_xgb.pkl
+!data/processed/models/faiss_profiles.index
+!data/processed/models/profile_embeddings.npy
+!data/processed/models/profile_texts.json
+!data/processed/models/retrieval_meta.parquet
+!models/salary_predictor.pkl
+
+# Ignore MLflow local SQLite DB
+mlflow.db
+mlruns/
+mlflow/
