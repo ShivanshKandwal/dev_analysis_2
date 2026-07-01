@@ -10,4 +10,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/hf-proxy': {
+        target: 'https://shivanshkandwal-devintel-hub.hf.space',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/hf-proxy/, ''),
+        ws: true,
+        secure: false,
+      }
+    }
+  }
 })
