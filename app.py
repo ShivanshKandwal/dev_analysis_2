@@ -284,7 +284,8 @@ with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as d
             submit_sal.click(
                 predict_salary_interface,
                 inputs=[country, ed_level, org_size, dev_type, remote_work, years_code, years_code_pro, work_exp, job_sat],
-                outputs=salary_output
+                outputs=salary_output,
+                api_name="predict_salary_interface"
             )
 
         # TAB 2: RETENTION & CAREER VALUE
@@ -317,7 +318,8 @@ with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as d
             submit_ret.click(
                 predict_retention_interface,
                 inputs=[ret_years_code, ret_years_code_pro, ret_work_exp, is_enterprise, ret_dev_type],
-                outputs=[churn_prob_out, risk_tier_out, career_value_out]
+                outputs=[churn_prob_out, risk_tier_out, career_value_out],
+                api_name="predict_retention_interface"
             )
 
         # TAB 3: SEMANTIC TALENT MATCHING
@@ -344,7 +346,8 @@ with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as d
             submit_search.click(
                 semantic_search_interface,
                 inputs=[search_query, top_k],
-                outputs=search_results
+                outputs=search_results,
+                api_name="semantic_search_interface"
             )
 
 if __name__ == "__main__":
