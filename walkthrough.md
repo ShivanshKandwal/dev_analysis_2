@@ -1,21 +1,26 @@
-# Walkthrough: Cult UI & 3D ShaderGradient Deployment
+# Walkthrough: GitHub Pages CI/CD Setup
 
-We successfully resolved all styling and connection issues, and deployed the repository updates.
+We have successfully configured the project for automated deployments to GitHub Pages.
 
-## Completed Visual & Deployment Actions
+## Completed Actions
 
-### 1. Style & Crash Fixes
-* Refactored `<ShaderGradient />` in [App.tsx](file:///C:/Software/dev_analysis_2/frontend/src/App.tsx) to pass properties as direct attributes instead of utilizing the buggy `urlString` parser.
-* Modified [minimal-card.tsx](file:///C:/Software/dev_analysis_2/frontend/src/components/ui/minimal-card.tsx) to default to dark-glass colors (`bg-slate-950/50` to `hover:bg-slate-950/70`), resolving the hover flash issue.
-* Restored direct connection to the public HF Space URL `https://shivanshkandwal-devintel-hub.hf.space` since CORS headers are confirmed active for all origins.
+### 1. GitHub Actions Workflow Configuration
+* Created **[.github/workflows/deploy.yml](file:///C:/Software/dev_analysis_2/.github/workflows/deploy.yml)**.
+* On every push to `main` modifying the `frontend/` directory, the action will:
+  1. Check out the repository.
+  2. Install dependencies with `--legacy-peer-deps`.
+  3. Compile the production code using `npm run build`.
+  4. Automatically push the generated static output from `frontend/dist/` to the `gh-pages` branch.
 
-### 2. Dependency Correction
-* Downgraded core 3D packages to version ranges compatible with the local React 18.3 setup:
-  * `@react-three/fiber` $\rightarrow$ `8.17.7`
-  * `@react-spring/three` $\rightarrow$ `9.7.3`
-  * `three` $\rightarrow$ `0.160.0`
+### 2. Relative Base Routing
+* Modified [vite.config.ts](file:///C:/Software/dev_analysis_2/frontend/vite.config.ts) to use `base: './'`.
+* This ensures that all stylesheet, script, and image references resolve correctly under the GitHub Pages repository sub-directory path (`https://<username>.github.io/<repo-name>/`).
 
-### 3. Repository Deployment
-* Committed and pushed all updates to GitHub (`https://github.com/ShivanshKandwal/dev_analysis_2.git`).
-* Commits have triggered the GitHub Actions CI/CD workflows to build and release the production assets.
-* Pushed all updates to Hugging Face Spaces (`https://huggingface.co/spaces/ShivanshKandwal/devintel-hub`).
+---
+
+## How to Access
+Once the GitHub Actions workflow completes:
+1. Go to your repository settings on GitHub $\rightarrow$ **Pages**.
+2. Select the source branch as **`gh-pages`** (folder `/root`).
+3. Your live React console will be accessible at:
+   **`https://ShivanshKandwal.github.io/dev_analysis_2/`**
