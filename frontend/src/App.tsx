@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 
 // Cult UI & Shadcn Components
-import { ShaderGradientCanvas, ShaderGradient } from '@shadergradient/react';
 import { CanvasFractalGrid } from './components/ui/canvas-fractal-grid';
 import { MinimalCard, MinimalCardTitle, MinimalCardDescription } from './components/ui/minimal-card';
 import { BorderBeamButton } from './components/ui/border-beam-button';
@@ -91,41 +90,16 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-950 font-sans text-slate-100 flex flex-col justify-between overflow-x-hidden selection:bg-indigo-500/30 selection:text-white">
-      {/* 3D Fluid Shader Gradient Background */}
-      <div 
-        className="fixed inset-0 z-[-2] pointer-events-none"
-        style={{
-          width: '100vw',
-          height: '100vh',
-        }}
-      >
-        <ShaderGradientCanvas
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            zIndex: -2,
-            pointerEvents: 'none'
-          }}
-        >
-          <ShaderGradient
-            type="waterPlane"
-            animate="on"
-            color1="#0ea5e9"
-            color2="#10b981"
-            color3="#4f46e5"
-            bgColor1="#030712"
-            bgColor2="#030712"
-            brightness={1.2}
-            uDensity={1.5}
-            uFrequency={5.5}
-            uSpeed={0.15}
-            grain="on"
-          />
-        </ShaderGradientCanvas>
+    <div className="min-h-screen bg-black font-sans text-slate-100 flex flex-col justify-between overflow-x-hidden selection:bg-cyan-500/30 selection:text-white">
+      {/* Black & Neon-Cyan Cybernetic Grid Background */}
+      <div className="fixed inset-0 z-[-2] bg-black pointer-events-none overflow-hidden">
+        {/* Neon-cyan radial glow at top left */}
+        <div className="absolute -top-[20%] -left-[20%] w-[60vw] h-[60vw] rounded-full bg-cyan-500/15 blur-[120px]" />
+        {/* Neon-cyan/blue radial glow at bottom right */}
+        <div className="absolute -bottom-[20%] -right-[20%] w-[60vw] h-[60vw] rounded-full bg-cyan-600/10 blur-[120px]" />
+        
+        {/* Cybernetic grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0891b2_1px,transparent_1px),linear-gradient(to_bottom,#0891b2_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20" />
       </div>
 
       {/* Cybernetic Fractal dot grid overlay */}
