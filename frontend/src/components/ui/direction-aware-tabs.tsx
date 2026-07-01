@@ -17,7 +17,7 @@ interface OgImageSectionProps {
   rounded?: string
   /** Inner tab/bubble radius — should be outer radius minus container padding (~3px) */
   roundedInner?: string
-  onChange?: () => void
+  onChange?: (id: number) => void
 }
 
 function DirectionAwareTabs({
@@ -42,7 +42,7 @@ function DirectionAwareTabs({
       const newDirection = newTabId > activeTab ? 1 : -1
       setDirection(newDirection)
       setActiveTab(newTabId)
-      onChange ? onChange() : null
+      onChange ? onChange(newTabId) : null
     }
   }
 

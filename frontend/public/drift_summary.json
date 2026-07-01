@@ -1,0 +1,49 @@
+{
+    "drift_alert_triggered": true,
+    "cohort_sizes": {
+        "reference_n": 20765,
+        "current_n": 103824
+    },
+    "metrics": {
+        "YearsCode": {
+            "psi": 0.0002,
+            "status": "Healthy"
+        },
+        "YearsCodePro": {
+            "psi": 0.0003,
+            "status": "Healthy"
+        },
+        "WorkExp": {
+            "psi": 0.0001,
+            "status": "Healthy"
+        },
+        "SurveyYear": {
+            "psi": 0.0002,
+            "status": "Healthy"
+        },
+        "Cluster_DevOps_Count": {
+            "psi": 0.0002,
+            "status": "Healthy"
+        },
+        "Cluster_DataBackend_Count": {
+            "psi": 0.0002,
+            "status": "Healthy"
+        },
+        "Is_Enterprise": {
+            "psi": 0.0,
+            "status": "Healthy"
+        },
+        "Enterprise_Experience_Interaction": {
+            "psi": 0.0,
+            "status": "Healthy"
+        },
+        "cluster_label": {
+            "psi": 0.0003,
+            "status": "Healthy"
+        },
+        "y_pred_proba": {
+            "psi": 1.5367,
+            "status": "CRITICAL DRIFT"
+        }
+    }
+}
