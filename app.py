@@ -174,7 +174,14 @@ def predict_salary_interface(
     pred_log = salary_model.predict(feat_df)[0]
     pred_salary = np.expm1(pred_log)
 
-    return f"${pred_salary:,.2f} USD / Year"
+    val = f"${pred_salary:,.2f}"
+    return f"""
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; border: 1px solid rgba(0,255,255,0.2); border-radius: 12px; background: rgba(0,0,0,0.4); box-shadow: 0 0 20px rgba(0,255,255,0.1); margin-top: 10px;" class="salary-box">
+        <span style="font-size: 13px; font-weight: 800; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase;">Estimated Compensation</span>
+        <span style="font-size: 38px; font-weight: 900; color: #00ffff; text-shadow: 0 0 15px rgba(0,255,255,0.6); margin: 10px 0; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">{val}</span>
+        <span style="font-size: 13px; font-weight: 700; color: #64748b; letter-spacing: 1px;">USD / Annual</span>
+    </div>
+    """
 
 def predict_retention_interface(
     years_code, years_code_pro, work_exp, is_enterprise, dev_type
@@ -225,11 +232,26 @@ def predict_retention_interface(
     predicted_log_val = career_model.predict(career_feats)[0]
     predicted_val_usd = np.expm1(predicted_log_val)
     
-    return (
-        f"{churn_prob:.1%}",
-        risk_level,
-        f"${predicted_val_usd:,.2f} USD"
-    )
+    prob_val = f"{churn_prob:.1%}"
+    risk_color = "#ef4444" if "CRITICAL" in risk_level else "#eab308" if "ELEVATED" in risk_level else "#10b981"
+    
+    return f"""
+    <div style="display: flex; flex-direction: column; gap: 16px; width: 100%; margin-top: 10px;" class="retention-box">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 18px; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; background: rgba(0,0,0,0.3);">
+            <span style="font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase;">Attrition Churn Probability</span>
+            <span style="font-size: 32px; font-weight: 900; color: {risk_color}; text-shadow: 0 0 10px {risk_color}44; margin-top: 6px;">{prob_val}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 18px; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; background: rgba(0,0,0,0.3);">
+            <span style="font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase;">Risk Assessment Status</span>
+            <span style="font-size: 20px; font-weight: 950; color: {risk_color}; margin-top: 6px; animation: pulse 2s infinite;">{risk_level}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 18px; border: 1px solid rgba(0,255,255,0.15); border-radius: 12px; background: rgba(0,0,0,0.3);">
+            <span style="font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase;">Estimated Profile Career Value</span>
+            <span style="font-size: 32px; font-weight: 900; color: #00ffff; text-shadow: 0 0 12px rgba(0,255,255,0.4); margin-top: 6px;">${predicted_val_usd:,.2f}</span>
+            <span style="font-size: 10px; font-weight: 700; color: #64748b; letter-spacing: 1px; margin-top: 2px;">USD</span>
+        </div>
+    </div>
+    """
 
 def semantic_search_interface(query, k=5):
     if not query.strip():
@@ -255,20 +277,40 @@ def semantic_search_interface(query, k=5):
             
     return "\n".join(out_lines) if out_lines else "No similar developer profiles found."
 
-# Design a gorgeous premium dark-themed Gradio Layout
+# Design a gorgeous premium dark-themed Gradio Layout matching the website
 custom_theme = gr.themes.Default(
-    primary_hue="purple",
-    secondary_hue="indigo",
+    primary_hue="cyan",
+    secondary_hue="cyan",
     neutral_hue="slate"
 ).set(
-    body_background_fill="*neutral_950",
-    block_background_fill="*neutral_900",
-    block_border_color="*neutral_800",
-    button_primary_background_fill="*primary_600",
-    button_primary_text_color="white"
+    body_background_fill="black",
+    body_background_fill_dark="black",
+    block_background_fill="rgba(15, 23, 42, 0.4)",
+    block_background_fill_dark="rgba(15, 23, 42, 0.4)",
+    block_border_color="rgba(0, 255, 255, 0.15)",
+    block_border_color_dark="rgba(0, 255, 255, 0.15)",
+    button_primary_background_fill="#06b6d4",
+    button_primary_background_fill_dark="#06b6d4",
+    button_primary_text_color="white",
+    button_primary_text_color_dark="white"
 )
 
-with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as demo:
+custom_css = """
+body, .gradio-container {
+    background-color: black !important;
+    background-image: radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 80%) !important;
+}
+.gradio-container {
+    border: 1px solid rgba(0, 255, 255, 0.1) !important;
+    border-radius: 16px !important;
+    padding: 24px !important;
+}
+footer {
+    display: none !important;
+}
+"""
+
+with gr.Blocks(theme=custom_theme, css=custom_css, title="DevIntel Unified Predictive Hub") as demo:
     gr.Markdown(
         """
         # 🧬 DevIntel Unified Predictive Hub
@@ -299,7 +341,7 @@ with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as d
                     job_sat = gr.Slider(label="Job Satisfaction Score (1=Dissatisfied, 5=Satisfied)", minimum=1, maximum=5, value=4, step=1)
                     
                     submit_sal = gr.Button("Calculate Estimated Salary", variant="primary")
-                    salary_output = gr.Textbox(label="Predicted Annual Compensation (USD)", interactive=False)
+                    salary_output = gr.HTML(label="Predicted Annual Compensation Result")
                     
             submit_sal.click(
                 predict_salary_interface,
@@ -331,14 +373,12 @@ with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as d
                     submit_ret = gr.Button("Evaluate Attrition Risks & Career Value", variant="primary")
                     
                 with gr.Column():
-                    churn_prob_out = gr.Textbox(label="Model Estimated Churn Probability", interactive=False)
-                    risk_tier_out = gr.Textbox(label="Risk Assessment Status", interactive=False)
-                    career_value_out = gr.Textbox(label="Calculated Profile Career Value (USD)", interactive=False)
+                    retention_output = gr.HTML(label="Diagnostic Assessment Result")
                     
             submit_ret.click(
                 predict_retention_interface,
                 inputs=[ret_years_code, ret_years_code_pro, ret_work_exp, is_enterprise, ret_dev_type],
-                outputs=[churn_prob_out, risk_tier_out, career_value_out],
+                outputs=retention_output,
                 api_name="predict_retention_interface"
             )
 
@@ -361,7 +401,10 @@ with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as d
                     submit_search = gr.Button("Search Developer Index", variant="primary")
                     
                 with gr.Column():
-                    search_results = gr.Markdown(label="Discovered Talent Matches")
+                    search_results = gr.Markdown(
+                        value="*Enter a technical profile description in the prompt box on the left and click **Search Developer Index** to visualize semantically aligned developer profiles.*",
+                        label="Discovered Talent Matches"
+                    )
                     
             submit_search.click(
                 semantic_search_interface,
