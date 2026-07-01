@@ -8,8 +8,8 @@
   --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   font-family: var(--font-sans);
-  background: linear-gradient(135deg, #E0F2FE 0%, #EDE9FE 25%, #FCE7F3 50%, #FEF3C7 75%, #CCFBF1 100%);
-  color: #1E293B;
+  background: #09090b;
+  color: #f8fafc;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -22,31 +22,95 @@ body {
   background: transparent;
 }
 
-/* Premium Light-Theme Glass Cards */
+/* Premium Dark-Theme Glass Cards */
 .glass-card {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08);
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 15px 50px 0 rgba(0, 0, 0, 0.45);
 }
 
-/* Grid backgrounds */
+/* Custom Floating Navbar Glow styles */
+.glass-nav {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Grid overlay */
 .bg-blueprint {
-  background-image: radial-gradient(rgba(99, 102, 241, 0.12) 1.2px, transparent 1.2px);
+  background-image: radial-gradient(rgba(99, 102, 241, 0.08) 1.2px, transparent 1.2px);
   background-size: 24px 24px;
 }
 
 .bg-grid-lines {
   background-image: 
-    linear-gradient(to right, rgba(99, 102, 241, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(99, 102, 241, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.02) 1px, transparent 1px);
   background-size: 48px 48px;
+}
+
+/* Fluid Shader blobs */
+@keyframes blob-float-1 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(40px, -60px) scale(1.1); }
+  66% { transform: translate(-30px, 30px) scale(0.95); }
+}
+
+@keyframes blob-float-2 {
+  0%, 100% { transform: translate(0px, 0px) scale(1.15); }
+  50% { transform: translate(-50px, 50px) scale(0.9); }
+}
+
+.blob-container {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: -1;
+  background: #09090b;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(130px);
+  opacity: 0.35;
+  mix-blend-mode: screen;
+}
+
+.blob-indigo {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #4f46e5 0%, transparent 80%);
+  top: -100px;
+  left: 20%;
+  animation: blob-float-1 25s ease-in-out infinite alternate;
+}
+
+.blob-rose {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, #db2777 0%, transparent 80%);
+  bottom: -150px;
+  right: 15%;
+  animation: blob-float-2 30s ease-in-out infinite alternate;
+}
+
+.blob-cyan {
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, #06b6d4 0%, transparent 80%);
+  top: 35%;
+  left: -50px;
+  animation: blob-float-1 28s ease-in-out infinite alternate-reverse;
 }

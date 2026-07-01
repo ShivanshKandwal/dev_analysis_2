@@ -6,24 +6,24 @@ import {
   UserCheck, 
   Search, 
   Activity, 
-  ChevronRight, 
   TrendingUp, 
-  HelpCircle,
-  Briefcase,
+  Server,
+  Globe,
   Award,
-  Users
+  Layers,
+  CheckCircle,
+  HelpCircle,
+  Menu,
+  X
 } from 'lucide-react';
 
-// Cult UI & Shadcn Components
-import { CanvasFractalGrid } from './components/ui/canvas-fractal-grid';
-import { DirectionAwareTabs } from './components/ui/direction-aware-tabs';
-import { MinimalCard, MinimalCardTitle, MinimalCardDescription } from './components/ui/minimal-card';
-import { BorderBeamButton } from './components/ui/border-beam-button';
+// Custom UI Components
 import { GlassCard } from './components/ui/GlassCard';
 import { TelemetryDashboard } from './components/TelemetryDashboard';
 import { Slider } from './components/ui/slider';
 import { Label } from './components/ui/label';
 import { Input } from './components/ui/input';
+import { BorderBeamButton } from './components/ui/border-beam-button';
 import {
   Select,
   SelectContent,
@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from './components/ui/select';
 
-// Option lists matching Gradio drop-down categories
+// Options matching Gradio drop-down categories
 const countries = [
   "United States of America", "Germany", "United Kingdom of Great Britain and Northern Ireland",
   "Canada", "France", "India", "Netherlands", "Australia", "Brazil", "Spain", "Sweden",
@@ -74,8 +74,9 @@ const remoteWorkOptions = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'salary' | 'retention' | 'search'>('salary');
-  
+  const [currentPage, setCurrentPage] = useState<'home' | 'salary' | 'retention' | 'search'>('home');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   // Gradio client state
   const [gradioClient, setGradioClient] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -122,13 +123,12 @@ export default function App() {
         setGradioClient(client);
       } catch (err: any) {
         console.error("Failed to connect to Gradio API:", err);
-        setErrorMsg("Model server is offline. Try reloading.");
+        setErrorMsg("Model server is currently offline. Reload page.");
       }
     }
     initClient();
   }, []);
 
-  // Submit handlers calling API
   const handleEstimateSalary = async () => {
     if (!gradioClient) return;
     setLoading(true);
@@ -194,30 +194,27 @@ export default function App() {
     }
   };
 
-  // Convert Markdown table simple parser for search results
   const renderMarkdownTable = (md: string) => {
     if (!md) return null;
-    
-    // Quick regex parser to turn markdown tables to clean styled items
     const rows = md.split('\n').filter(r => r.includes('|') && !r.includes('---'));
-    if (rows.length <= 1) return <p className="text-slate-500 font-medium">{md}</p>;
+    if (rows.length <= 1) return <p className="text-slate-400 font-medium">{md}</p>;
     
     const headers = rows[0].split('|').map(h => h.trim()).filter(Boolean);
     const dataRows = rows.slice(1).map(row => row.split('|').map(c => c.trim()).filter(Boolean));
 
     return (
-      <div className="overflow-x-auto w-full rounded-2xl border border-black/5 bg-white/20 backdrop-blur-md">
-        <table className="min-w-full divide-y divide-slate-200/50 text-left text-sm text-slate-700">
-          <thead className="bg-slate-100/60 font-semibold text-slate-800">
+      <div className="overflow-x-auto w-full rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-md">
+        <table className="min-w-full divide-y divide-white/10 text-left text-sm text-slate-300">
+          <thead className="bg-slate-900/60 font-semibold text-slate-200">
             <tr>
               {headers.map((h, i) => (
                 <th key={i} className="px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100/40">
+          <tbody className="divide-y divide-white/5">
             {dataRows.map((row, idx) => (
-              <tr key={idx} className="hover:bg-white/20 transition-colors">
+              <tr key={idx} className="hover:bg-white/5 transition-colors">
                 {row.map((cell, i) => (
                   <td key={i} className="px-4 py-3 font-medium">
                     {cell.startsWith('**') ? cell.replace(/\*\*/g, '') : cell}
@@ -231,445 +228,518 @@ export default function App() {
     );
   };
 
-  const tabs = [
-    { id: 'salary', label: 'Salary Estimator', icon: DollarSign },
-    { id: 'retention', label: 'Retention & Career Value', icon: UserCheck },
-    { id: 'search', label: 'Talent Vector Search', icon: Search }
-  ];
-
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden bg-grid-lines">
-      {/* Background Interactive canvas */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-        <CanvasFractalGrid />
+    <div className="relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden bg-grid-lines text-slate-100">
+      
+      {/* Fluid Shader gradient container */}
+      <div className="blob-container">
+        <div className="blob blob-indigo"></div>
+        <div className="blob blob-rose"></div>
+        <div className="blob blob-cyan"></div>
       </div>
 
-      {/* Hero section */}
-      <header className="relative z-10 max-w-7xl mx-auto w-full px-6 pt-12 text-center select-none">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-xs font-semibold text-indigo-600 mb-6"
-        >
-          <Activity className="w-3.5 h-3.5 animate-pulse" />
-          DevIntel Predictive Analytics Suite
-        </motion.div>
-        
-        <motion.h1
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-800"
-        >
-          Developer Intelligence <span className="text-indigo-600">Platform</span>
-        </motion.h1>
-        
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-base md:text-lg text-slate-500 max-w-2xl mx-auto mt-4 font-medium"
-        >
-          Standardized ML pipeline evaluating compensation ranges, organizational retention probabilities, and matching vector embeddings.
-        </motion.p>
-      </header>
-
-      {/* Main Panels layout */}
-      <main className="relative z-10 max-w-7xl mx-auto w-full px-6 py-10 flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Forms section */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          {/* Tab buttons using Cult UI DirectionAwareTabs */}
-          <div className="flex justify-center md:justify-start">
-            <DirectionAwareTabs
-              tabs={tabs}
-              onChange={(tabId) => setActiveTab(tabId as any)}
-              className="bg-white/40 border border-white/80 p-1.5 rounded-full shadow-sm"
-            />
-          </div>
-
-          <div className="w-full">
-            <AnimatePresence mode="wait">
-              {/* Tab 1: Salary market estimator */}
-              {activeTab === 'salary' && (
-                <motion.div
-                  key="salary"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <GlassCard className="p-8 flex flex-col gap-6">
-                    <div className="text-left border-b border-black/5 pb-4">
-                      <h3 className="text-lg font-bold text-slate-800">Developer Compensation Predictor</h3>
-                      <p className="text-sm text-slate-500 mt-1 font-medium">Predict market rate salaries based on regional demographics, tech roles, and background.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                      {/* Country */}
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="country" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Demographic Country</Label>
-                        <Select
-                          value={salaryForm.country}
-                          onValueChange={(val) => setSalaryForm(p => ({ ...p, country: val }))}
-                        >
-                          <SelectTrigger id="country">
-                            <SelectValue placeholder="Select location" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {countries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Education */}
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="edLevel" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Educational Level</Label>
-                        <Select
-                          value={salaryForm.edLevel}
-                          onValueChange={(val) => setSalaryForm(p => ({ ...p, edLevel: val }))}
-                        >
-                          <SelectTrigger id="edLevel">
-                            <SelectValue placeholder="Select degree" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {edLevels.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Organization Size */}
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="orgSize" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Company Workforce Size</Label>
-                        <Select
-                          value={salaryForm.orgSize}
-                          onValueChange={(val) => setSalaryForm(p => ({ ...p, orgSize: val }))}
-                        >
-                          <SelectTrigger id="orgSize">
-                            <SelectValue placeholder="Select size" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {orgSizes.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Developer Subtype */}
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="devType" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Developer Subtype / Role</Label>
-                        <Select
-                          value={salaryForm.devType}
-                          onValueChange={(val) => setSalaryForm(p => ({ ...p, devType: val }))}
-                        >
-                          <SelectTrigger id="devType">
-                            <SelectValue placeholder="Select subtype" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {devTypes.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Remote Work Mode */}
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="remoteWork" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Work Modality</Label>
-                        <Select
-                          value={salaryForm.remoteWork}
-                          onValueChange={(val) => setSalaryForm(p => ({ ...p, remoteWork: val }))}
-                        >
-                          <SelectTrigger id="remoteWork">
-                            <SelectValue placeholder="Select work-mode" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {remoteWorkOptions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Years Code Slider */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Experience: {salaryForm.yearsCode} Years</Label>
-                        </div>
-                        <Slider 
-                          value={[salaryForm.yearsCode]} 
-                          onValueChange={(val) => setSalaryForm(p => ({ ...p, yearsCode: val[0] }))}
-                          max={50} 
-                          step={1} 
-                        />
-                      </div>
-
-                      {/* Years Pro Code Slider */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Professional Experience: {salaryForm.yearsCodePro} Years</Label>
-                        </div>
-                        <Slider 
-                          value={[salaryForm.yearsCodePro]} 
-                          onValueChange={(val) => setSalaryForm(p => ({ ...p, yearsCodePro: val[0] }))}
-                          max={50} 
-                          step={1} 
-                        />
-                      </div>
-
-                      {/* Work Exp Slider */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Work Experience: {salaryForm.workExp} Years</Label>
-                        </div>
-                        <Slider 
-                          value={[salaryForm.workExp]} 
-                          onValueChange={(val) => setSalaryForm(p => ({ ...p, workExp: val[0] }))}
-                          max={50} 
-                          step={1} 
-                        />
-                      </div>
-
-                      {/* Job Satisfaction */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Job Satisfaction Score: {salaryForm.jobSat}/5</Label>
-                        </div>
-                        <Slider 
-                          value={[salaryForm.jobSat]} 
-                          onValueChange={(val) => setSalaryForm(p => ({ ...p, jobSat: val[0] }))}
-                          max={5} 
-                          min={1}
-                          step={1} 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-black/5 pt-6">
-                      <BorderBeamButton 
-                        onClick={handleEstimateSalary} 
-                        disabled={loading || !gradioClient}
-                        className="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white hover:bg-indigo-700 transition"
-                      >
-                        {loading ? "Calculating..." : "Compute Predicted Salary"}
-                      </BorderBeamButton>
-
-                      {predictedSalary && (
-                        <div className="w-full md:w-auto bg-emerald-50 border border-emerald-100 rounded-2xl px-6 py-3 text-left">
-                          <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Market Estimate (Annual)</span>
-                          <h4 className="text-xl font-mono font-bold text-emerald-700 mt-0.5">{predictedSalary}</h4>
-                        </div>
-                      )}
-                    </div>
-                  </GlassCard>
-                </motion.div>
-              )}
-
-              {/* Tab 2: Retention Risk Analysis */}
-              {activeTab === 'retention' && (
-                <motion.div
-                  key="retention"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <GlassCard className="p-8 flex flex-col gap-6">
-                    <div className="text-left border-b border-black/5 pb-4">
-                      <h3 className="text-lg font-bold text-slate-800">Retention Risk &amp; Career Valuator</h3>
-                      <p className="text-sm text-slate-500 mt-1 font-medium">Evaluate probability of developer attrition risks alongside career-stage equity value predictions.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                      {/* Developer Subtype */}
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="ret-devType" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Developer Primary Role</Label>
-                        <Select
-                          value={retentionForm.devType}
-                          onValueChange={(val) => setRetentionForm(p => ({ ...p, devType: val }))}
-                        >
-                          <SelectTrigger id="ret-devType">
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {devTypes.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Org Type (Enterprise vs Startup) */}
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="isEnterprise" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Organization Tier Type</Label>
-                        <Select
-                          value={retentionForm.isEnterprise}
-                          onValueChange={(val) => setRetentionForm(p => ({ ...p, isEnterprise: val }))}
-                        >
-                          <SelectTrigger id="isEnterprise">
-                            <SelectValue placeholder="Select org type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Startup / Mid-Size Organization">Startup / Mid-Size (Under 1,000 employees)</SelectItem>
-                            <SelectItem value="Enterprise Organization (1,000+ employees)">Enterprise Scale (1,000+ employees)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Years Code Slider */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Coding Years: {retentionForm.yearsCode} Years</Label>
-                        </div>
-                        <Slider 
-                          value={[retentionForm.yearsCode]} 
-                          onValueChange={(val) => setRetentionForm(p => ({ ...p, yearsCode: val[0] }))}
-                          max={50} 
-                          step={1} 
-                        />
-                      </div>
-
-                      {/* Years Pro Code Slider */}
-                      <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Professional Coding Years: {retentionForm.yearsCodePro} Years</Label>
-                        </div>
-                        <Slider 
-                          value={[retentionForm.yearsCodePro]} 
-                          onValueChange={(val) => setRetentionForm(p => ({ ...p, yearsCodePro: val[0] }))}
-                          max={50} 
-                          step={1} 
-                        />
-                      </div>
-
-                      {/* Work Exp Slider */}
-                      <div className="flex flex-col gap-2 md:col-span-2">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Aggregate Work Experience: {retentionForm.workExp} Years</Label>
-                        </div>
-                        <Slider 
-                          value={[retentionForm.workExp]} 
-                          onValueChange={(val) => setRetentionForm(p => ({ ...p, workExp: val[0] }))}
-                          max={50} 
-                          step={1} 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-6 flex flex-col justify-start gap-6 border-t border-black/5 pt-6 text-left">
-                      <BorderBeamButton 
-                        onClick={handleEvaluateRetention} 
-                        disabled={loading || !gradioClient}
-                        className="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white hover:bg-indigo-700 transition"
-                      >
-                        {loading ? "Evaluating..." : "Run Risk Valuation Engine"}
-                      </BorderBeamButton>
-
-                      {retentionResult && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-2">
-                          <div className="bg-white/40 border border-black/5 rounded-2xl p-4">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Estimated Churn Prob</span>
-                            <span className="text-lg font-mono font-bold text-slate-800 mt-1 block">{retentionResult.prob}</span>
-                          </div>
-                          
-                          <div className="bg-white/40 border border-black/5 rounded-2xl p-4">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Risk Assessment Status</span>
-                            <span className="text-sm font-semibold text-slate-700 mt-1 block">{retentionResult.risk}</span>
-                          </div>
-
-                          <div className="bg-white/40 border border-black/5 rounded-2xl p-4">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Profile Career Value</span>
-                            <span className="text-lg font-mono font-bold text-indigo-600 mt-1 block">{retentionResult.value}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </GlassCard>
-                </motion.div>
-              )}
-
-              {/* Tab 3: Semantic searching */}
-              {activeTab === 'search' && (
-                <motion.div
-                  key="search"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <GlassCard className="p-8 flex flex-col gap-6">
-                    <div className="text-left border-b border-black/5 pb-4">
-                      <h3 className="text-lg font-bold text-slate-800">Recruiter Semantic Profile Search</h3>
-                      <p className="text-sm text-slate-500 mt-1 font-medium">Discover talent matches by describing candidate expectations in natural language queries.</p>
-                    </div>
-
-                    <div className="flex flex-col gap-4 text-left">
-                      <div className="flex flex-col gap-2">
-                        <Label htmlFor="searchQuery" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Semantic Prompt / Search Criteria</Label>
-                        <Input
-                          id="searchQuery"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          placeholder="e.g. backend specialist with python expertise and 10+ years experience"
-                          className="w-full bg-white/40 border border-black/10 text-slate-800 placeholder:text-slate-400 focus:bg-white"
-                        />
-                      </div>
-
-                      <div className="flex flex-col gap-2">
-                        <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Retrieve Matches Cap: {searchK} Profiles</Label>
-                        </div>
-                        <Slider 
-                          value={[searchK]} 
-                          onValueChange={(val) => setSearchK(val[0])}
-                          max={25} 
-                          min={1}
-                          step={1} 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-col gap-6 border-t border-black/5 pt-6 text-left">
-                      <BorderBeamButton 
-                        onClick={handleSemanticSearch} 
-                        disabled={loading || !gradioClient}
-                        className="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white hover:bg-indigo-700 transition"
-                      >
-                        {loading ? "Searching..." : "Retrieve Matching Candidates"}
-                      </BorderBeamButton>
-
-                      {searchResultMarkdown && (
-                        <div className="w-full mt-2">
-                          <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Top Discovered Talent Profiles</h4>
-                          {renderMarkdownTable(searchResultMarkdown)}
-                        </div>
-                      )}
-                    </div>
-                  </GlassCard>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+      {/* Floating Glass Navigation Bar */}
+      <nav className="fixed top-4 left-4 right-4 z-50 glass-nav rounded-2xl max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 select-none">
+          <Globe className="w-5 h-5 text-indigo-400" />
+          <span className="font-sans font-bold text-sm tracking-wider uppercase text-white">DevIntel Platform</span>
         </div>
 
-        {/* Right Stats & Telemetry side bar */}
-        <div className="flex flex-col gap-6">
-          {/* Status info box */}
-          <MinimalCard className="p-6 bg-white/50 border border-white text-left">
-            <MinimalCardTitle className="flex items-center gap-2 text-slate-800 text-sm font-bold">
-              <span className={`inline-block w-2.5 h-2.5 rounded-full ${gradioClient ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
-              Model Server Status
-            </MinimalCardTitle>
-            <MinimalCardDescription className="text-xs text-slate-500 font-medium mt-1">
-              {gradioClient ? "Successfully connected to Hugging Face Space model registry." : "Connecting to Model Server..."}
-            </MinimalCardDescription>
-            {errorMsg && (
-              <p className="text-xs text-rose-500 font-semibold mt-2">{errorMsg}</p>
-            )}
-          </MinimalCard>
-
-          {/* Telemetry Dashboard component */}
-          <TelemetryDashboard />
+        {/* Desktop Nav Links */}
+        <div className="hidden md:flex items-center gap-1">
+          {[
+            { id: 'home', label: 'Console Home' },
+            { id: 'salary', label: 'Salary Predictor' },
+            { id: 'retention', label: 'Retention Risk' },
+            { id: 'search', label: 'Talent Search' }
+          ].map((link) => (
+            <button
+              key={link.id}
+              onClick={() => setCurrentPage(link.id as any)}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${
+                currentPage === link.id 
+                  ? 'bg-white/10 text-white border-b-2 border-indigo-400' 
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {link.label}
+            </button>
+          ))}
         </div>
+
+        {/* Mobile menu trigger */}
+        <div className="md:hidden">
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="text-slate-400 hover:text-white"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile nav drawer */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed top-20 left-4 right-4 z-40 glass-nav rounded-2xl p-4 flex flex-col gap-2 md:hidden"
+          >
+            {[
+              { id: 'home', label: 'Console Home' },
+              { id: 'salary', label: 'Salary Predictor' },
+              { id: 'retention', label: 'Retention Risk' },
+              { id: 'search', label: 'Talent Search' }
+            ].map((link) => (
+              <button
+                key={link.id}
+                onClick={() => {
+                  setCurrentPage(link.id as any);
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full text-left px-4 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all ${
+                  currentPage === link.id 
+                    ? 'bg-white/10 text-white' 
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {link.label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* View router workspace */}
+      <main className="relative z-10 max-w-7xl mx-auto w-full px-6 pt-28 pb-12 flex-1 flex flex-col justify-start">
+        <AnimatePresence mode="wait">
+          
+          {/* View 1: Console Home & Telemetry */}
+          {currentPage === 'home' && (
+            <motion.div
+              key="home"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left w-full"
+            >
+              <div className="lg:col-span-2 flex flex-col gap-6">
+                <GlassCard className="p-8">
+                  <h2 className="text-3xl font-extrabold text-white">Talent Analytics Infrastructure</h2>
+                  <p className="text-slate-400 font-medium mt-2 leading-relaxed">
+                    Welcome to the DevIntel core control console. This client interface accesses pre-trained supervised estimators and high-dimensional semantic indexing endpoints compiled directly from multi-year developer survey repositories.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+                    <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-4">
+                      <Layers className="w-5 h-5 text-indigo-400 mb-2" />
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Models Loaded</h4>
+                      <p className="text-sm font-semibold text-slate-200 mt-1">3 Estimators</p>
+                    </div>
+
+                    <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-4">
+                      <Globe className="w-5 h-5 text-emerald-400 mb-2" />
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Regional Data</h4>
+                      <p className="text-sm font-semibold text-slate-200 mt-1">17 Countries</p>
+                    </div>
+
+                    <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-4">
+                      <TrendingUp className="w-5 h-5 text-rose-400 mb-2" />
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Indexed Profiles</h4>
+                      <p className="text-sm font-semibold text-slate-200 mt-1">48,200 Nodes</p>
+                    </div>
+                  </div>
+                </GlassCard>
+
+                {/* Inference resource graphs logs component */}
+                <TelemetryDashboard />
+              </div>
+
+              {/* Sidebar status */}
+              <div className="flex flex-col gap-6">
+                <GlassCard className="p-6 bg-slate-950/40 border border-white/5">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                    <Server className="w-4 h-4 text-indigo-400" />
+                    ML Registry Health
+                  </h4>
+                  
+                  <div className="flex items-center gap-3 bg-slate-900/30 rounded-2xl p-3 border border-white/5 mb-3">
+                    <div className={`w-3 h-3 rounded-full ${gradioClient ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-amber-500 animate-pulse'}`} />
+                    <div className="flex-1 text-xs">
+                      <span className="font-bold text-slate-200 block">Space Server Link</span>
+                      <span className="text-slate-400">{gradioClient ? "HF Spaces Connected" : "Connecting..."}</span>
+                    </div>
+                  </div>
+
+                  {errorMsg && (
+                    <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 mt-2 text-left">
+                      <p className="text-xs text-rose-400 font-semibold">{errorMsg}</p>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-slate-500 mt-4 leading-relaxed font-medium">
+                    Pipelines automatically execute target embeddings locally or route queries via LFS pointers on backend space environments.
+                  </p>
+                </GlassCard>
+
+                <GlassCard className="p-6">
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Documentation Reference</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                    Select a page from the floating navigation bar to load compensation analysis, retention probability assessments, or vector searching consoles.
+                  </p>
+                </GlassCard>
+              </div>
+            </motion.div>
+          )}
+
+          {/* View 2: Salary market predictor */}
+          {currentPage === 'salary' && (
+            <motion.div
+              key="salary"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              className="w-full text-left"
+            >
+              <GlassCard className="p-8 flex flex-col gap-6">
+                <div className="border-b border-white/10 pb-4">
+                  <h2 className="text-2xl font-extrabold text-white">Compensation Market Estimator</h2>
+                  <p className="text-sm text-slate-400 mt-1 font-medium">Evaluate expected annual compensation rates based on demographics, work environments, and background levels.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Country */}
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="country" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Demographic Region / Location</Label>
+                    <Select
+                      value={salaryForm.country}
+                      onValueChange={(val) => setSalaryForm(p => ({ ...p, country: val }))}
+                    >
+                      <SelectTrigger id="country" className="bg-slate-950/55 border-white/10 text-white">
+                        <SelectValue placeholder="Select location" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/15 text-white">
+                        {countries.map(c => <SelectItem key={c} value={c} className="focus:bg-indigo-600 focus:text-white">{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Education */}
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="edLevel" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Educational Attainment</Label>
+                    <Select
+                      value={salaryForm.edLevel}
+                      onValueChange={(val) => setSalaryForm(p => ({ ...p, edLevel: val }))}
+                    >
+                      <SelectTrigger id="edLevel" className="bg-slate-950/55 border-white/10 text-white">
+                        <SelectValue placeholder="Select degree" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/15 text-white">
+                        {edLevels.map(e => <SelectItem key={e} value={e} className="focus:bg-indigo-600">{e}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Company Size */}
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="orgSize" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Workforce Size</Label>
+                    <Select
+                      value={salaryForm.orgSize}
+                      onValueChange={(val) => setSalaryForm(p => ({ ...p, orgSize: val }))}
+                    >
+                      <SelectTrigger id="orgSize" className="bg-slate-950/55 border-white/10 text-white">
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/15 text-white">
+                        {orgSizes.map(o => <SelectItem key={o} value={o} className="focus:bg-indigo-600">{o}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Developer Subtype */}
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="devType" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Developer Primary Subtype</Label>
+                    <Select
+                      value={salaryForm.devType}
+                      onValueChange={(val) => setSalaryForm(p => ({ ...p, devType: val }))}
+                    >
+                      <SelectTrigger id="devType" className="bg-slate-950/55 border-white/10 text-white">
+                        <SelectValue placeholder="Select subtype" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/15 text-white">
+                        {devTypes.map(d => <SelectItem key={d} value={d} className="focus:bg-indigo-600">{d}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Remote Work Mode */}
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="remoteWork" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Remote Modality</Label>
+                    <Select
+                      value={salaryForm.remoteWork}
+                      onValueChange={(val) => setSalaryForm(p => ({ ...p, remoteWork: val }))}
+                    >
+                      <SelectTrigger id="remoteWork" className="bg-slate-950/55 border-white/10 text-white">
+                        <SelectValue placeholder="Select work-mode" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/15 text-white">
+                        {remoteWorkOptions.map(r => <SelectItem key={r} value={r} className="focus:bg-indigo-600">{r}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Years Code Slider */}
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Coding Experience: {salaryForm.yearsCode} Years</Label>
+                    <Slider 
+                      value={[salaryForm.yearsCode]} 
+                      onValueChange={(val) => setSalaryForm(p => ({ ...p, yearsCode: val[0] }))}
+                      max={50} 
+                      step={1} 
+                    />
+                  </div>
+
+                  {/* Years Pro Code Slider */}
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Professional Coding Experience: {salaryForm.yearsCodePro} Years</Label>
+                    <Slider 
+                      value={[salaryForm.yearsCodePro]} 
+                      onValueChange={(val) => setSalaryForm(p => ({ ...p, yearsCodePro: val[0] }))}
+                      max={50} 
+                      step={1} 
+                    />
+                  </div>
+
+                  {/* Work Exp Slider */}
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Aggregate Work Experience: {salaryForm.workExp} Years</Label>
+                    <Slider 
+                      value={[salaryForm.workExp]} 
+                      onValueChange={(val) => setSalaryForm(p => ({ ...p, workExp: val[0] }))}
+                      max={50} 
+                      step={1} 
+                    />
+                  </div>
+
+                  {/* Job Satisfaction */}
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Satisfaction Index: {salaryForm.jobSat}/5</Label>
+                    <Slider 
+                      value={[salaryForm.jobSat]} 
+                      onValueChange={(val) => setSalaryForm(p => ({ ...p, jobSat: val[0] }))}
+                      max={5} 
+                      min={1}
+                      step={1} 
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-6 border-t border-white/10 pt-6">
+                  <BorderBeamButton 
+                    onClick={handleEstimateSalary} 
+                    disabled={loading || !gradioClient}
+                    className="w-full md:w-auto px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white transition font-semibold"
+                  >
+                    {loading ? "Calculating..." : "Compute Estimate"}
+                  </BorderBeamButton>
+
+                  {predictedSalary && (
+                    <div className="w-full md:w-auto bg-emerald-500/10 border border-emerald-500/20 rounded-2xl px-6 py-3">
+                      <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">Estimated Annual Compensation</span>
+                      <h4 className="text-xl font-mono font-bold text-emerald-300 mt-0.5">{predictedSalary}</h4>
+                    </div>
+                  )}
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
+
+          {/* View 3: Retention Risk Analysis */}
+          {currentPage === 'retention' && (
+            <motion.div
+              key="retention"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              className="w-full text-left"
+            >
+              <GlassCard className="p-8 flex flex-col gap-6">
+                <div className="border-b border-white/10 pb-4">
+                  <h2 className="text-2xl font-extrabold text-white">Retention Evaluator &amp; Profile Valuator</h2>
+                  <p className="text-sm text-slate-400 mt-1 font-medium">Analyze churn probabilities and evaluate equity career valuation calculations.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Developer Subtype */}
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="ret-devType" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Developer Subtype / Role</Label>
+                    <Select
+                      value={retentionForm.devType}
+                      onValueChange={(val) => setRetentionForm(p => ({ ...p, devType: val }))}
+                    >
+                      <SelectTrigger id="ret-devType" className="bg-slate-950/55 border-white/10 text-white">
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/15 text-white">
+                        {devTypes.map(d => <SelectItem key={d} value={d} className="focus:bg-indigo-600">{d}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Organization Type (Enterprise vs Startup) */}
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="isEnterprise" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Organization Tier Type</Label>
+                    <Select
+                      value={retentionForm.isEnterprise}
+                      onValueChange={(val) => setRetentionForm(p => ({ ...p, isEnterprise: val }))}
+                    >
+                      <SelectTrigger id="isEnterprise" className="bg-slate-950/55 border-white/10 text-white">
+                        <SelectValue placeholder="Select org type" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/15 text-white">
+                        <SelectItem value="Startup / Mid-Size Organization" className="focus:bg-indigo-600">Startup / Mid-Size (Under 1,000 employees)</SelectItem>
+                        <SelectItem value="Enterprise Organization (1,000+ employees)" className="focus:bg-indigo-600">Enterprise Scale (1,000+ employees)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Years Code Slider */}
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Years Coding: {retentionForm.yearsCode} Years</Label>
+                    <Slider 
+                      value={[retentionForm.yearsCode]} 
+                      onValueChange={(val) => setRetentionForm(p => ({ ...p, yearsCode: val[0] }))}
+                      max={50} 
+                      step={1} 
+                    />
+                  </div>
+
+                  {/* Years Pro Code Slider */}
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Professional Coding: {retentionForm.yearsCodePro} Years</Label>
+                    <Slider 
+                      value={[retentionForm.yearsCodePro]} 
+                      onValueChange={(val) => setRetentionForm(p => ({ ...p, yearsCodePro: val[0] }))}
+                      max={50} 
+                      step={1} 
+                    />
+                  </div>
+
+                  {/* Work Exp Slider */}
+                  <div className="flex flex-col gap-2 md:col-span-2">
+                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Aggregate Work Experience: {retentionForm.workExp} Years</Label>
+                    <Slider 
+                      value={[retentionForm.workExp]} 
+                      onValueChange={(val) => setRetentionForm(p => ({ ...p, workExp: val[0] }))}
+                      max={50} 
+                      step={1} 
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-col justify-start gap-6 border-t border-white/10 pt-6">
+                  <BorderBeamButton 
+                    onClick={handleEvaluateRetention} 
+                    disabled={loading || !gradioClient}
+                    className="w-full md:w-auto px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white transition font-semibold"
+                  >
+                    {loading ? "Evaluating..." : "Run Risk Analysis"}
+                  </BorderBeamButton>
+
+                  {retentionResult && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-2">
+                      <div className="bg-slate-950/50 border border-white/5 rounded-2xl p-4">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Estimated Churn Prob</span>
+                        <span className="text-lg font-mono font-bold text-slate-200 mt-1 block">{retentionResult.prob}</span>
+                      </div>
+                      
+                      <div className="bg-slate-950/50 border border-white/5 rounded-2xl p-4">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Assessment Status</span>
+                        <span className="text-sm font-semibold text-indigo-300 mt-1 block">{retentionResult.risk}</span>
+                      </div>
+
+                      <div className="bg-slate-950/50 border border-white/5 rounded-2xl p-4">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Stage Equity Valuation</span>
+                        <span className="text-lg font-mono font-bold text-indigo-400 mt-1 block">{retentionResult.value}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
+
+          {/* View 4: Semantic Talent Search */}
+          {currentPage === 'search' && (
+            <motion.div
+              key="search"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              className="w-full text-left"
+            >
+              <GlassCard className="p-8 flex flex-col gap-6">
+                <div className="border-b border-white/10 pb-4">
+                  <h2 className="text-2xl font-extrabold text-white">Semantic Talent Search</h2>
+                  <p className="text-sm text-slate-400 mt-1 font-medium">Locate matches within 48,200 developer profiles using vector embeddings indexing.</p>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="searchQuery" className="text-xs font-bold text-slate-400 uppercase tracking-wider">Search Prompt / Requirements</Label>
+                    <Input
+                      id="searchQuery"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="e.g. backend specialist with python expertise and 10+ years experience"
+                      className="w-full bg-slate-950/55 border-white/10 text-white placeholder:text-slate-500 focus:bg-slate-950"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top-K Matches Limit: {searchK} Profiles</Label>
+                    <Slider 
+                      value={[searchK]} 
+                      onValueChange={(val) => setSearchK(val[0])}
+                      max={25} 
+                      min={1}
+                      step={1} 
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-col gap-6 border-t border-white/10 pt-6">
+                  <BorderBeamButton 
+                    onClick={handleSemanticSearch} 
+                    disabled={loading || !gradioClient}
+                    className="w-full md:w-auto px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white transition font-semibold"
+                  >
+                    {loading ? "Searching..." : "Retrieve Matches"}
+                  </BorderBeamButton>
+
+                  {searchResultMarkdown && (
+                    <div className="w-full mt-2">
+                      <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Matching Candidates</h4>
+                      {renderMarkdownTable(searchResultMarkdown)}
+                    </div>
+                  )}
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
+
+        </AnimatePresence>
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 py-8 text-center text-xs font-semibold text-slate-400 select-none">
-        &copy; 2026 DevIntel Platforms Inc. All modeling states based on merged multi-year Stack Overflow surveys.
+      <footer className="relative z-10 py-8 text-center text-xs font-semibold text-slate-500 select-none">
+        &copy; 2026 DevIntel Platforms Inc. Pre-trained supervised estimators on Stack Overflow survey telemetry.
       </footer>
     </div>
   );
