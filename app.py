@@ -350,13 +350,10 @@ with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as d
                 api_name="semantic_search_interface"
             )
 
-# Create FastAPI app and configure custom CORS Middleware to allow credentials from frontend origins
-import fastapi
+# Add CORS middleware directly to Gradio's lazy-loaded FastAPI app instance
 from fastapi.middleware.cors import CORSMiddleware
 
-app = fastapi.FastAPI()
-
-app.add_middleware(
+demo.app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://shivanshkandwal.github.io",
@@ -367,9 +364,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app = gr.mount_gradio_app(app, demo, path="/")
-
 if __name__ == "__main__":
-    import uvicorn
     port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    demo.launch(server_name="0.0.0.0", server_port=port)
