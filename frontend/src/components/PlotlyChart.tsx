@@ -32,6 +32,26 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
       })
       .then((plotlyData) => {
         if (!containerRef.current) return;
+
+        const cleanString = (str: any): any => {
+          if (typeof str !== 'string') return str;
+          return str
+            .replace(/R\ufffd/g, 'R²')
+            .replace(/R\uFFFD/g, 'R²')
+            .replace(/R_2/g, 'R²')
+            .replace(/R\^2/g, 'R²');
+        };
+
+        // Clean layout text titles
+        if (plotlyData.layout?.title?.text) {
+          plotlyData.layout.title.text = cleanString(plotlyData.layout.title.text);
+        }
+        if (plotlyData.layout?.xaxis?.title?.text) {
+          plotlyData.layout.xaxis.title.text = cleanString(plotlyData.layout.xaxis.title.text);
+        }
+        if (plotlyData.layout?.yaxis?.title?.text) {
+          plotlyData.layout.yaxis.title.text = cleanString(plotlyData.layout.yaxis.title.text);
+        }
         
         // Custom dark cybernetic theme layout overlay
         const layout = {
@@ -77,7 +97,7 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
         };
 
         // Filter data traces dynamically
-        let filteredTraces = [...plotlyData.data];
+        let rawTraces = [...plotlyData.data];
 
         // 1. Category Filter (for Talent Forecasting)
         if (reportId === 'interactive_forecasts.html' && categoryFilter !== 'all') {
@@ -85,7 +105,7 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
           const dbGroups = ["PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite", "Elasticsearch", "Supabase"];
           const devopsGroups = ["AWS", "Docker", "Kubernetes"];
 
-          filteredTraces = filteredTraces.filter((trace: any) => {
+          rawTraces = rawTraces.filter((trace: any) => {
             if (categoryFilter === 'languages') {
               return langGroups.includes(trace.legendgroup);
             } else if (categoryFilter === 'databases') {
@@ -99,7 +119,7 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
 
         // 2. Cluster Filter (for Developer Clusters UMAP)
         if (reportId === 'umap_developer_clusters.html' && clusterFilter !== 'all') {
-          filteredTraces = filteredTraces.filter((trace: any) => {
+          rawTraces = rawTraces.filter((trace: any) => {
             const name = (trace.name || '').toLowerCase();
             if (clusterFilter === 'devops') {
               return name.includes('infrastructure') || name.includes('cloud') || name.includes('devops');
@@ -115,7 +135,7 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
         // 3. Search Query Filter (for NLP Profile Map / general highlights)
         if (searchQuery.trim() !== '') {
           const query = searchQuery.toLowerCase().trim();
-          filteredTraces = filteredTraces.map((trace: any) => {
+          rawTraces = rawTraces.map((trace: any) => {
             const matchesQuery = (trace.name || '').toLowerCase().includes(query) || 
                                  (trace.text || '').toLowerCase().includes(query);
             
@@ -133,6 +153,54 @@ export const PlotlyChart: React.FC<PlotlyChartProps> = ({
             return trace;
           });
         }
+
+        // Apply visual overrides to make all graphs stylistic and clean  references
+        const neonPalette = ['#00ffff', '#a855f7', '#f43f5e', '#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#14b8a6'];
+        
+        const filteredTraces = rawTraces.map((trace: any, idx: number) => {
+          const updatedTrace = {
+            ...trace,
+            name: cleanString(trace.name || ''),
+            text: Array.isArray(trace.text) 
+              ? trace.text.map((t: any) => cleanString(t)) 
+              : cleanString(trace.text || '')
+          };
+
+          // Style line charts with smooth splines
+          if (updatedTrace.type === 'scatter' || updatedTrace.type === 'scattergl') {
+            if (updatedTrace.mode?.includes('lines')) {
+              updatedTrace.line = {
+                ...updatedTrace.line,
+                shape: 'spline',
+                smoothing: 1.3,
+                width: 3.5
+              };
+            }
+            // Add subtle outline styles to scatter markers
+            if (updatedTrace.marker) {
+              updatedTrace.marker = {
+                ...updatedTrace.marker,
+                line: {
+                  color: 'rgba(255, 255, 255, 0.15)',
+                  width: 1
+                }
+              };
+            }
+          }
+
+          // Assign themed colors for specific traces dynamically if needed
+          if (idx < neonPalette.length) {
+            const chosenColor = neonPalette[idx];
+            if (updatedTrace.line) {
+              updatedTrace.line.color = updatedTrace.line.color || chosenColor;
+            }
+            if (updatedTrace.marker) {
+              updatedTrace.marker.color = updatedTrace.marker.color || chosenColor;
+            }
+          }
+
+          return updatedTrace;
+        });
 
         // Ensure responsive text sizing
         const data = filteredTraces.map((trace: any) => {
