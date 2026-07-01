@@ -293,7 +293,7 @@ export default function App() {
                 </motion.div>
               )}
 
-              {/* View 2: Embedded Gradio Console */}
+              {/* View 2: Embedded Gradio Console via standard CORS-immune iframe */}
               {currentPage === 'predict' && (
                 <motion.div
                   key="predict"
@@ -303,12 +303,13 @@ export default function App() {
                   transition={{ duration: 0.3 }}
                   className="w-full text-left h-full"
                 >
-                  <MinimalCard className="p-2 bg-slate-950/60 border border-white/5 overflow-hidden rounded-2xl flex flex-col">
-                    <gradio-app 
+                  <MinimalCard className="p-1 bg-slate-950/60 border border-white/5 overflow-hidden rounded-2xl flex flex-col">
+                    <iframe
                       src="https://shivanshkandwal-devintel-hub.hf.space"
-                      theme="dark"
-                      class="w-full min-h-[650px] border-0 rounded-xl overflow-y-auto"
-                    ></gradio-app>
+                      className="w-full min-h-[700px] border-0 rounded-xl bg-slate-900/10"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
                   </MinimalCard>
                 </motion.div>
               )}
