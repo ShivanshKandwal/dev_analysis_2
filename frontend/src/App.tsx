@@ -118,7 +118,7 @@ export default function App() {
   const [searchK, setSearchK] = useState<number>(5);
   const [searchResultMarkdown, setSearchResultMarkdown] = useState<string>("");
 
-  // Initialize connection to Hugging Face Space
+  // Initialize connection to Hugging Face Space using official SDK format
   useEffect(() => {
     async function initClient() {
       setGradioClient(null);
@@ -128,7 +128,7 @@ export default function App() {
         if (hfToken.trim()) {
           connectOptions.hf_token = hfToken.trim();
         }
-        const client = await Client.connect("ShivanshKandwal/devintel-hub");
+        const client = await Client.connect("https://shivanshkandwal-devintel-hub.hf.space", connectOptions);
         setGradioClient(client);
       } catch (err: any) {
         console.error("Failed to connect to Gradio API:", err);
@@ -160,8 +160,8 @@ export default function App() {
         job_sat: salaryForm.jobSat
       });
       setPredictedSalary(res.data[0]);
-    } catch (err) {
-      setErrorMsg("Failed to query salary model.");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to query salary model.");
     } finally {
       setLoading(false);
     }
@@ -184,8 +184,8 @@ export default function App() {
         risk: res.data[1],
         value: res.data[2]
       });
-    } catch (err) {
-      setErrorMsg("Failed to query retention model.");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to query retention model.");
     } finally {
       setLoading(false);
     }
@@ -201,8 +201,8 @@ export default function App() {
         k: searchK
       });
       setSearchResultMarkdown(res.data[0]);
-    } catch (err) {
-      setErrorMsg("Failed to retrieve profile matches.");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to retrieve profile matches.");
     } finally {
       setLoading(false);
     }
