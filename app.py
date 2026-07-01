@@ -11,6 +11,26 @@ from pathlib import Path
 
 # Setup central directories
 BASE_DIR = Path(__file__).resolve().parent
+
+# Monkeypatch FastAPI constructor to automatically inject CORS middleware on initialization
+import fastapi
+from fastapi.middleware.cors import CORSMiddleware
+original_init = fastapi.FastAPI.__init__
+
+def patched_init(self, *args, **kwargs):
+    original_init(self, *args, **kwargs)
+    self.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "https://shivanshkandwal.github.io",
+            "http://localhost:5173"
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+fastapi.FastAPI.__init__ = patched_init
 MODELS_DIR = BASE_DIR / "models"
 PROCESSED_MODELS_DIR = BASE_DIR / "data" / "processed" / "models"
 DATA_PATH = BASE_DIR / "data" / "processed" / "master_table_v2.csv"
@@ -345,24 +365,205 @@ with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as d
                     
             submit_search.click(
                 semantic_search_interface,
+    # Predict Log scale and reconstruct to dollars
+    pred_log = salary_model.predict(feat_df)[0]
+    pred_salary = np.expm1(pred_log)
+
+    return f"${pred_salary:,.2f} USD / Year"
+
+def predict_retention_interface(
+    years_code, years_code_pro, work_exp, is_enterprise, dev_type
+):
+    is_ent_val = 1 if is_enterprise == "Enterprise Organization (1,000+ employees)" else 0
+    cluster_devops_count = 3 if "devops" in dev_type.lower() else 0
+    cluster_databackend_count = 3 if "data" in dev_type.lower() or "back-end" in dev_type.lower() else 0
+    
+    # 1. Churn Prediction
+    churn_feats = pd.DataFrame([{
+        "YearsCode": years_code,
+        "YearsCodePro": years_code_pro,
+        "WorkExp": work_exp,
+        "SurveyYear": 2024,
+        "Cluster_DevOps_Count": cluster_devops_count,
+        "Cluster_DataBackend_Count": cluster_databackend_count,
+        "Is_Enterprise": is_ent_val,
+        "Enterprise_Experience_Interaction": is_ent_val * years_code_pro,
+        "cluster_label": 1 # baseline default
+    }])
+    
+    churn_cols = ["YearsCode", "YearsCodePro", "WorkExp", "SurveyYear", "Cluster_DevOps_Count", "Cluster_DataBackend_Count", "Is_Enterprise", "Enterprise_Experience_Interaction", "cluster_label"]
+    churn_feats = churn_feats[churn_cols]
+    
+    churn_prob = float(churn_model.predict_proba(churn_feats)[0, 1])
+    risk_level = "🔴 CRITICAL ATTRITION RISK" if churn_prob >= 0.60 else "🟡 ELEVATED ATTRITION RISK" if churn_prob >= 0.35 else "🟢 STABLE CORE COHORT"
+    
+    # 2. Career Value Prediction
+    country_enc = 11.2 # US median placeholder for baseline
+    devtype_enc = devtype_enc_map.get(dev_type, 11.0)
+    
+    career_feats = pd.DataFrame([{
+        "YearsCode": years_code,
+        "YearsCodePro": years_code_pro,
+        "WorkExp": work_exp,
+        "SurveyYear": 2024,
+        "Cluster_DevOps_Count": cluster_devops_count,
+        "Cluster_DataBackend_Count": cluster_databackend_count,
+        "Is_Enterprise": is_ent_val,
+        "cluster_label": 1,
+        "Country_TargetEncoded": country_enc,
+        "DevType_TargetEncoded": devtype_enc
+    }])
+    
+    career_cols = ["YearsCode", "YearsCodePro", "WorkExp", "SurveyYear", "Cluster_DevOps_Count", "Cluster_DataBackend_Count", "Is_Enterprise", "cluster_label", "Country_TargetEncoded", "DevType_TargetEncoded"]
+    career_feats = career_feats[career_cols]
+    
+    predicted_log_val = career_model.predict(career_feats)[0]
+    predicted_val_usd = np.expm1(predicted_log_val)
+    
+    return (
+        f"{churn_prob:.1%}",
+        risk_level,
+        f"${predicted_val_usd:,.2f} USD"
+    )
+
+def semantic_search_interface(query, k=5):
+    if not query.strip():
+        return "Please input a query description."
+    
+    encoder = get_embed_model()
+    query_vector = encoder.encode([query], normalize_embeddings=True).astype("float32")
+    
+    scores, indices = faiss_index.search(query_vector, int(k))
+    
+    out_lines = []
+    for count, (score, idx) in enumerate(zip(scores[0], indices[0]), 1):
+        if idx >= 0 and idx < len(profile_texts):
+            profile_str = profile_texts[idx]
+            
+            # Fetch companion metadata if valid
+            meta_str = ""
+            if idx < len(retrieval_meta):
+                meta_row = retrieval_meta.iloc[idx]
+                meta_str = f" | Country: {meta_row.get('Country', 'N/A')} | Stage: {meta_row.get('career_stage', 'N/A')} | Sat Score: {meta_row.get('job_sat_score', 'N/A')}/5"
+                
+            out_lines.append(f"### Match #{count} (Similarity Score: {score:.4f}{meta_str})\n> {profile_str}\n")
+            
+    return "\n".join(out_lines) if out_lines else "No similar developer profiles found."
+
+# Design a gorgeous premium dark-themed Gradio Layout
+custom_theme = gr.themes.Default(
+    primary_hue="purple",
+    secondary_hue="indigo",
+    neutral_hue="slate"
+).set(
+    body_background_fill="*neutral_950",
+    block_background_fill="*neutral_900",
+    block_border_color="*neutral_800",
+    button_primary_background_fill="*primary_600",
+    button_primary_text_color="white"
+)
+
+with gr.Blocks(theme=custom_theme, title="DevIntel Unified Predictive Hub") as demo:
+    gr.Markdown(
+        """
+        # 🧬 DevIntel Unified Predictive Hub
+        *A state-of-the-art predictive dashboard serving deep salary regression, organizational retention forecasting, and FAISS-based semantic talent matching.*
+        """
+    )
+    
+    with gr.Tabs():
+        # TAB 1: SALARY ESTIMATOR
+        with gr.TabItem("💵 Salary Predictor Engine"):
+            gr.Markdown(
+                """
+                ### Annual Compensation Estimator
+                Enter developer credentials to calculate their predicted market value based on Stack Overflow longitudinal surveys.
+                """
+            )
+            with gr.Row():
+                with gr.Column():
+                    country = gr.Dropdown(label="Country Location", choices=countries, value="United States of America")
+                    dev_type = gr.Dropdown(label="Developer Subtype / Role", choices=dev_types, value="Developer, back-end")
+                    ed_level = gr.Dropdown(label="Highest Educational Level", choices=ed_levels, value="Bachelor’s degree (B.A., B.S., B.Eng., etc.)")
+                    org_size = gr.Dropdown(label="Company Size", choices=org_sizes, value="100 to 499 employees")
+                    remote_work = gr.Dropdown(label="Remote Modality", choices=remote_options, value="Remote")
+                with gr.Column():
+                    years_code = gr.Slider(label="Years of Coding Experience", minimum=0, maximum=50, value=10, step=1)
+                    years_code_pro = gr.Slider(label="Years of Professional Experience", minimum=0, maximum=50, value=6, step=1)
+                    work_exp = gr.Slider(label="Total Work Experience (Years)", minimum=0, maximum=50, value=8, step=1)
+                    job_sat = gr.Slider(label="Job Satisfaction Score (1=Dissatisfied, 5=Satisfied)", minimum=1, maximum=5, value=4, step=1)
+                    
+                    submit_sal = gr.Button("Calculate Estimated Salary", variant="primary")
+                    salary_output = gr.Textbox(label="Predicted Annual Compensation (USD)", interactive=False)
+                    
+            submit_sal.click(
+                predict_salary_interface,
+                inputs=[country, ed_level, org_size, dev_type, remote_work, years_code, years_code_pro, work_exp, job_sat],
+                outputs=salary_output,
+                api_name="predict_salary_interface"
+            )
+
+        # TAB 2: RETENTION & CAREER VALUE
+        with gr.TabItem("📊 Retention & Career Value Engine"):
+            gr.Markdown(
+                """
+                ### Attrition Risk & Career Performance Analyzer
+                Analyze employee attrition risk probability alongside predicted career valuation standings.
+                """
+            )
+            with gr.Row():
+                with gr.Column():
+                    ret_dev_type = gr.Dropdown(label="Developer Role", choices=dev_types, value="Developer, back-end")
+                    is_enterprise = gr.Radio(
+                        label="Organization Type", 
+                        choices=["Startup / Mid-Size Organization", "Enterprise Organization (1,000+ employees)"],
+                        value="Startup / Mid-Size Organization"
+                    )
+                    ret_years_code = gr.Slider(label="Years of Coding", minimum=0, maximum=50, value=8, step=1)
+                    ret_years_code_pro = gr.Slider(label="Years of Pro Coding", minimum=0, maximum=50, value=4, step=1)
+                    ret_work_exp = gr.Slider(label="Total Work Experience", minimum=0, maximum=50, value=6, step=1)
+                    
+                    submit_ret = gr.Button("Evaluate Attrition Risks & Career Value", variant="primary")
+                    
+                with gr.Column():
+                    churn_prob_out = gr.Textbox(label="Model Estimated Churn Probability", interactive=False)
+                    risk_tier_out = gr.Textbox(label="Risk Assessment Status", interactive=False)
+                    career_value_out = gr.Textbox(label="Calculated Profile Career Value (USD)", interactive=False)
+                    
+            submit_ret.click(
+                predict_retention_interface,
+                inputs=[ret_years_code, ret_years_code_pro, ret_work_exp, is_enterprise, ret_dev_type],
+                outputs=[churn_prob_out, risk_tier_out, career_value_out],
+                api_name="predict_retention_interface"
+            )
+
+        # TAB 3: SEMANTIC TALENT MATCHING
+        with gr.TabItem("🧬 Semantic Profile Matcher"):
+            gr.Markdown(
+                """
+                ### Vector Embedding Search Profile Finder
+                Search the 15,000 encoded developer profiles semantically using natural language descriptions.
+                """
+            )
+            with gr.Row():
+                with gr.Column():
+                    search_query = gr.Textbox(
+                        label="Semantic Search Prompt / Talent Description", 
+                        placeholder="e.g., Python backend engineer with 8 years experience based in Germany working with SQL.",
+                        lines=3
+                    )
+                    top_k = gr.Slider(label="Number of Matching Profiles to Retrieve", minimum=1, maximum=15, value=5, step=1)
+                    submit_search = gr.Button("Search Developer Index", variant="primary")
+                    
+                with gr.Column():
+                    search_results = gr.Markdown(label="Discovered Talent Matches")
+                    
+            submit_search.click(
+                semantic_search_interface,
                 inputs=[search_query, top_k],
                 outputs=search_results,
                 api_name="semantic_search_interface"
             )
-
-# Add CORS middleware directly to Gradio's lazy-loaded FastAPI app instance
-from fastapi.middleware.cors import CORSMiddleware
-
-demo.app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://shivanshkandwal.github.io",
-        "http://localhost:5173"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
