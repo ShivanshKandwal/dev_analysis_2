@@ -128,7 +128,7 @@ export default function App() {
         if (hfToken.trim()) {
           connectOptions.hf_token = hfToken.trim();
         }
-        const client = await Client.connect("https://shivanshkandwal-devintel-hub.hf.space");
+        const client = await Client.connect("ShivanshKandwal/devintel-hub");
         setGradioClient(client);
       } catch (err: any) {
         console.error("Failed to connect to Gradio API:", err);
