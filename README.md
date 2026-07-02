@@ -11,17 +11,15 @@ pinned: false
 ---
 
 # 🧬 DevIntel: Developer Intelligence & Telemetry Hub
+![Main UI](./images_Devintel/main%20UI.gif)
 
 DevIntel is a state-of-the-art predictive analytics platform designed to model and estimate developer profiles using multi-year developer survey repositories. The project integrates robust Python machine learning pipelines, causal inference metrics, and high-dimensional semantic indexing alongside a premium, responsive React-Vite client dashboard.
 
 ---
 
 ## 📸 Platform Preview
-*(Add main platform UI screenshot here)*
-<!-- PLACEHOLDER: MAIN_UI_IMAGE -->
-
-*(Add interactive walkthrough GIF here showing dashboard filters and estimator tools)*
-<!-- PLACEHOLDER: INTERACTIVE_WALKTHROUGH_GIF -->
+![Full Demo 1](./images_Devintel/full%20demo%20-%201%20,%203.gif)
+![Full Demo 2](./images_Devintel/full%20demo%20-%202.gif)
 
 ---
 
@@ -45,39 +43,37 @@ DevIntel is a state-of-the-art predictive analytics platform designed to model a
 #### 🏠 1. Console Home (Dashboard Landing)
 * **Visual Scope**: Centered high-density summary metrics, custom neon-teal title headers, and interactive hover cards mapping data shapes.
 * **Exploratory Data Selector**: A custom gradient button selector hosting 6 telemetry and model validation graphs.
-* *(Place Home Page Screenshot/GIF here)*
-<!-- PLACEHOLDER: PAGE_HOME_PREVIEW -->
+![Main UI](./images_Devintel/main%20UI.gif)
 
 #### 🧮 2. Predictive Console (Embedded Calculators)
 * **Salary Regression Engine**: Predicts compensation based on country, years of code, and company size. Output is styled as a large, centered neon value with a breathing pulse animation.
 * **Attrition Risk Grid**: Centered status tiering (Critical, Elevated, Stable) indicating churn risks.
 * **Semantic search**: Queries over 15,000 developer nodes using NLP prompts.
 * *(Place Calculator Workspace Screenshot/GIF here)*
-<!-- PLACEHOLDER: PAGE_CALCULATOR_PREVIEW -->
+![Full Demo 1](./images_Devintel/full%20demo%20-%201%20,%203.gif)
 
 #### 📈 3. Talent Forecasting
 * **Dynamic Projections**: Forecasts technological stack trends.
 * **Category Filters**: Restrict metrics dynamically to Languages, Databases, or DevOps segments using sliding blur direction-aware tabs.
-* *(Place Forecasting Page Screenshot/GIF here)*
-<!-- PLACEHOLDER: PAGE_FORECAST_PREVIEW -->
+![Forecast](./images_Devintel/forecast.gif)
 
 #### ⚖️ 4. Causal A/B Testing
 * **Uplift Modeling**: Simulates job satisfaction changes across remote vs hybrid groups.
 * **Interactive Views**: Switch instantly between uplift estimates and standard mean differences balance validation.
 * *(Place Causal Analytics Page Screenshot/GIF here)*
-<!-- PLACEHOLDER: PAGE_CAUSAL_PREVIEW -->
+![Causal Analysis 1](./images_Devintel/causal%201.png)
+
+![Causal Analysis 2](./images_Devintel/causal%202.png)
 
 #### 🌐 5. UMAP Clusters
 * **Interactive Scatter Canvas**: Renders clustered roles based on skill similarity.
 * **Role Highlights**: Filter nodes by cluster category (DevOps, Web Specialists, Enterprise) to trace spatial separations.
-* *(Place UMAP Visualizer Page Screenshot/GIF here)*
-<!-- PLACEHOLDER: PAGE_UMAP_PREVIEW -->
+![UMAP Visualization 1](./images_Devintel/umap%201.png)
+
+![UMAP Visualization 2](./images_Devintel/umap%202.png)
 
 #### 🗺️ 6. NLP Profile Map
 * **Vector Search Interface**: A high-dimensional search node mapper. Input text search queries to highlight corresponding developer groups dynamically.
-* *(Place NLP Search Map Page Screenshot/GIF here)*
-<!-- PLACEHOLDER: PAGE_NLP_PREVIEW -->
-
 ---
 
 ## 🏗️ Project Architecture
